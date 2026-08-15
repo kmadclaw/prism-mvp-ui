@@ -1,4 +1,9 @@
-export const SAMPLE_COBOL = `       IDENTIFICATION DIVISION.
+export const EXAMPLES = [
+  {
+    id: 'account-fee',
+    title: 'Account fee + customer tier',
+    description: 'Arithmetic, IF/ELSE, DISPLAY, and traceable Java generation.',
+    source: `       IDENTIFICATION DIVISION.
        PROGRAM-ID. ACCOUNT-MVP.
        DATA DIVISION.
        WORKING-STORAGE SECTION.
@@ -14,7 +19,47 @@ export const SAMPLE_COBOL = `       IDENTIFICATION DIVISION.
                MOVE 'STANDARD' TO CUSTOMER-TYPE
            END-IF.
            DISPLAY CUSTOMER-TYPE.
-           STOP RUN.`;
+           STOP RUN.`
+  },
+  {
+    id: 'loan-payment',
+    title: 'Loan payment computation',
+    description: 'COMPUTE, MOVE, numeric fields, and deterministic Java field mapping.',
+    source: `       IDENTIFICATION DIVISION.
+       PROGRAM-ID. LOAN-PAYMENT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 PRINCIPAL      PIC 9(5) VALUE 12000.
+       01 RATE           PIC 9(2) VALUE 6.
+       01 MONTHS         PIC 9(3) VALUE 12.
+       01 INTEREST       PIC 9(5) VALUE 0.
+       01 PAYMENT        PIC 9(5) VALUE 0.
+       PROCEDURE DIVISION.
+       MAIN.
+           COMPUTE INTEREST = PRINCIPAL * RATE.
+           DIVIDE MONTHS INTO INTEREST.
+           MOVE INTEREST TO PAYMENT.
+           DISPLAY PAYMENT.
+           STOP RUN.`
+  },
+  {
+    id: 'unsupported-gap',
+    title: 'Unsupported construct gap',
+    description: 'Shows how PRISM returns structured gaps instead of hiding failures.',
+    source: `       IDENTIFICATION DIVISION.
+       PROGRAM-ID. GAP-DEMO.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 BALANCE        PIC 9(5) VALUE 500.
+       PROCEDURE DIVISION.
+       MAIN.
+           SEARCH CUSTOMER-TABLE.
+           DISPLAY BALANCE.
+           STOP RUN.`
+  }
+];
+
+export const SAMPLE_COBOL = EXAMPLES[0].source;
 
 const RESERVED = new Set(['IF','ELSE','END-IF','END','DISPLAY','MOVE','ADD','SUBTRACT','MULTIPLY','DIVIDE','COMPUTE','PERFORM','CALL','STOP','RUN','TO','FROM','BY','GIVING','VALUE','PIC','SECTION','DIVISION']);
 
@@ -155,6 +200,50 @@ function renderJava(target) {
   }
   lines.push('    }'); lines.push('}'); return lines.join('\n');
 }
+
+export function createRunArtifacts(source, options = {}) {
+  const result = runPrismMvp(source);
+  const runId = options.runId || createRunId(result.summary.programId);
+  const generatedFile = `${result.targetIr.className}.java`;
+  const now = new Date().toISOString();
+  const artifacts = {
+    [`artifacts/${runId}/source/input.cbl`]: source,
+    [`artifacts/${runId}/source/source-model.json`]: result.sourceModel,
+    [`artifacts/${runId}/analysis/symbols.json`]: result.symbols,
+    [`artifacts/${runId}/analysis/cfg.json`]: result.cfg,
+    [`artifacts/${runId}/analysis/read-write.json`]: result.readWrite,
+    [`artifacts/${runId}/semantic/semantic-ir.json`]: result.semanticIr,
+    [`artifacts/${runId}/target/java-ir.json`]: result.targetIr,
+    [`artifacts/${runId}/generated/${generatedFile}`]: result.java,
+    [`artifacts/${runId}/validation/compile.json`]: {
+      schema: 'prism.compile.v1',
+      status: 'not-run-in-vercel-mvp',
+      note: 'The MVP backend generates compile artifacts; javac execution is a next backend worker step.'
+    },
+    [`artifacts/${runId}/validation/gaps.json`]: result.gaps,
+    [`artifacts/${runId}/manifest.json`]: {
+      schema: 'prism.artifact-manifest.v1',
+      runId,
+      createdAt: now,
+      programId: result.summary.programId,
+      generatedFile,
+      artifactCount: 10,
+      engine: 'prism-mvp-deterministic-js-engine',
+      stages: ['source', 'symbols', 'cfg', 'read-write', 'semantic-ir', 'java-target-ir', 'java-render', 'validation-gaps']
+    }
+  };
+  return { runId, ...result, artifacts };
+}
+
+function createRunId(programId) {
+  const safe = String(programId || 'program').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'program';
+  return `${safe}-${Date.now().toString(36)}`;
+}
+
+export function artifactPayloadForDownload(run) {
+  return JSON.stringify(run.artifacts, null, 2);
+}
+
 function validate(model, symbols, ir, java) { const gaps=[]; const symbolNames=new Set(symbols.variables.map(v=>v.name.toUpperCase())); for (const s of model.statements) { if(s.type==='UNSUPPORTED' || s.unsupportedReason) gaps.push({ schema:'prism.gap.v1', type:s.type==='UNSUPPORTED'?'UNSUPPORTED_CONSTRUCT':'PARTIAL_SUPPORT', severity:s.type==='UNSUPPORTED'?'error':'warning', sourceStatementId:s.id, line:s.sourceLocation.startLine, message:s.unsupportedReason }); for (const n of [...(namesInExpr(s.value)), ...(namesInExpr(s.expression)), ...(namesInExpr(s.condition)), ...(s.target?[s.target]:[])]) if(n && !/^\d/.test(n) && !/^['"]/.test(n) && !symbolNames.has(n.toUpperCase())) gaps.push({ schema:'prism.gap.v1', type:'UNRESOLVED_SYMBOL', severity:'warning', sourceStatementId:s.id, line:s.sourceLocation.startLine, symbol:n, message:`Symbol ${n} was not declared in WORKING-STORAGE` }); }
   if(!/public class/.test(java)) gaps.push({ schema:'prism.gap.v1', type:'COMPILATION_FAILURE', severity:'error', message:'Renderer did not produce a Java class' }); return gaps; }
 function summarize(model, ir, gaps) { return { programId:model.programId, declarations:model.declarations.length, statements:model.statements.length, semanticOperations:ir.operations.length, gaps:gaps.length, deterministic:true }; }

@@ -1,10 +1,11 @@
 {
   "name": "prism-mvp-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/prism-core.test.mjs",
-    "build": "node tests/prism-core.test.mjs"
+    "test": "node tests/prism-core.test.mjs && node tests/api.test.mjs",
+    "build": "npm test",
+    "start": "vercel dev"
   }
 }
