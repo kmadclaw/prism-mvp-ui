@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PRISM MVP Translator</title>
+  <meta name="description" content="PRISM MVP UI: enter constrained COBOL and inspect deterministic Semantic IR, CFG, gaps, and generated Java." />
+  <style>
+    :root{--bg:#070a12;--panel:#0f1725;--panel2:#141f31;--line:rgba(255,255,255,.1);--text:#e8eef8;--muted:#93a4ba;--blue:#65d8ff;--green:#55e6a5;--gold:#ffd166;--red:#ff6b7d;--violet:#a78bfa;--shadow:0 18px 60px rgba(0,0,0,.35)}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 10% 0,rgba(101,216,255,.2),transparent 28rem),radial-gradient(circle at 90% 0,rgba(167,139,250,.18),transparent 24rem),linear-gradient(180deg,#070a12,#080c14 60%,#05070b);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}.wrap{width:min(1320px,calc(100vw - 28px));margin:auto}header{padding:36px 0 18px}.eyebrow{color:var(--green);font-size:12px;text-transform:uppercase;letter-spacing:.16em;font-weight:800}h1{font-size:clamp(34px,5vw,68px);letter-spacing:-.055em;line-height:.95;margin:8px 0 12px}.lead{max-width:920px;color:var(--muted);font-size:18px}.grid{display:grid;grid-template-columns:.88fr 1.12fr;gap:16px;align-items:start}.card{background:linear-gradient(180deg,rgba(20,31,49,.94),rgba(13,20,32,.94));border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);padding:9px 12px;border-radius:12px;font-weight:750;cursor:pointer}button.primary{background:linear-gradient(135deg,rgba(101,216,255,.24),rgba(85,230,165,.18));border-color:rgba(101,216,255,.35)}button:hover{border-color:rgba(101,216,255,.5)}textarea{width:100%;min-height:620px;resize:vertical;background:#070b13;color:#e9f1ff;border:1px solid var(--line);border-radius:16px;padding:14px;font-family:"SFMono-Regular",Consolas,monospace;font-size:13px;line-height:1.45}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}.metric{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:12px}.metric strong{display:block;font-size:22px;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric span{display:block;color:var(--muted);font-size:12px}.metric.good{border-color:rgba(85,230,165,.28);background:rgba(85,230,165,.07)}.metric.warn{border-color:rgba(255,209,102,.32);background:rgba(255,209,102,.08)}.metric.bad{border-color:rgba(255,107,125,.35);background:rgba(255,107,125,.08)}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.tabs button.active{background:rgba(101,216,255,.17);border-color:rgba(101,216,255,.45)}pre{margin:0;min-height:530px;max-height:720px;overflow:auto;background:#060912;border:1px solid var(--line);border-radius:16px;padding:14px;color:#e9f1ff;font-family:"SFMono-Regular",Consolas,monospace;font-size:13px;line-height:1.5}.note{color:var(--muted);font-size:13px;margin:8px 0 0}.pillrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.pill{border:1px solid var(--line);border-radius:999px;padding:6px 9px;color:#dbe7f8;background:rgba(255,255,255,.05);font-size:12px}footer{color:var(--muted);font-size:12px;padding:24px 0 40px}@media(max-width:960px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}textarea{min-height:360px}pre{min-height:360px}}
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="eyebrow">PRISM MVP · Deterministic semantic transpilation</div>
+    <h1>COBOL → Semantic IR → Java</h1>
+    <p class="lead">Paste constrained COBOL, run the MVP pipeline, and inspect generated Java plus PRISM-owned source model, symbols, read/write facts, CFG, Semantic IR, and structured gaps.</p>
+    <div class="pillrow"><span class="pill">No LLM code generation</span><span class="pill">Traceable IR</span><span class="pill">Deterministic renderer</span><span class="pill">MVP constructs only</span></div>
+  </header>
+  <main class="wrap grid">
+    <section class="card">
+      <h2>1. Enter COBOL</h2>
+      <p class="note">Supported MVP: PROGRAM-ID, WORKING-STORAGE elementary declarations, MOVE, arithmetic, COMPUTE, IF/ELSE/END-IF, PERFORM, DISPLAY, basic CALL stubs.</p>
+      <div class="toolbar"><button id="runBtn" class="primary">Run translation</button><button id="sampleBtn">Load sample</button><button id="clearBtn">Clear</button></div>
+      <textarea id="cobolInput" spellcheck="false"></textarea>
+    </section>
+    <section class="card">
+      <h2>2. Inspect translation</h2>
+      <div id="summary" class="metrics"></div>
+      <div class="tabs">
+        <button data-tab="java" class="active">Generated Java</button>
+        <button data-tab="ir">Semantic IR</button>
+        <button data-tab="source">Source model</button>
+        <button data-tab="cfg">CFG</button>
+        <button data-tab="gaps">Gaps</button>
+        <button id="copyJavaBtn">Copy Java</button>
+      </div>
+      <div data-panel="java"><pre id="javaOut"></pre></div>
+      <div data-panel="ir" hidden><pre id="irOut"></pre></div>
+      <div data-panel="source" hidden><pre id="sourceOut"></pre></div>
+      <div data-panel="cfg" hidden><pre id="cfgOut"></pre></div>
+      <div data-panel="gaps" hidden><pre id="gapsOut"></pre></div>
+    </section>
+  </main>
+  <footer class="wrap">PRISM MVP UI. Operational prototype from PRD: parse → source model → symbols/CFG/read-write → Semantic IR → Java Target IR → renderer → gap model.</footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
