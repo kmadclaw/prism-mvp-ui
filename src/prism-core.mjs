@@ -227,7 +227,7 @@ export function createRunArtifacts(source, options = {}) {
       createdAt: now,
       programId: result.summary.programId,
       generatedFile,
-      artifactCount: 10,
+      artifactCount: 11,
       engine: 'prism-mvp-deterministic-js-engine',
       stages: ['source', 'symbols', 'cfg', 'read-write', 'semantic-ir', 'java-target-ir', 'java-render', 'validation-gaps']
     }

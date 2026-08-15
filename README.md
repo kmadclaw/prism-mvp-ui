@@ -55,6 +55,10 @@ PROGRAM-ID, WORKING-STORAGE elementary declarations, MOVE, ADD, SUBTRACT, MULTIP
 
 ```bash
 npm test
+npm run dev
+# open http://127.0.0.1:4174
+
+# Vercel-compatible dev server, when Vercel auth is available:
 npx vercel dev --listen 4174 --token "$VERCEL_TOKEN"
 ```
 

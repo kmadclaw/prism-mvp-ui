@@ -18,7 +18,7 @@ assert.equal(run.runId, 'test-run');
 assert.ok(run.artifacts['artifacts/test-run/source/source-model.json']);
 assert.ok(run.artifacts['artifacts/test-run/semantic/semantic-ir.json']);
 assert.ok(run.artifacts['artifacts/test-run/generated/AccountMvp.java'].includes('public class AccountMvp'));
-assert.equal(run.artifacts['artifacts/test-run/manifest.json'].artifactCount, 10);
+assert.equal(run.artifacts['artifacts/test-run/manifest.json'].artifactCount, 11);
 assert.ok(EXAMPLES.length >= 3);
 
 const unsupported = runPrismMvp(EXAMPLES.find(e => e.id === 'unsupported-gap').source);
