@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node tests/prism-core.test.mjs && node tests/api.test.mjs",
-    "build": "npm test",
+    "build": "npm test && node scripts/build-static.mjs",
     "dev": "node dev-server.mjs",
     "start": "vercel dev"
   }

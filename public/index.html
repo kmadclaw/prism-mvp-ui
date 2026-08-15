@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PRISM Engine Workbench</title>
+  <meta name="description" content="PRISM MVP backend engine workbench: choose COBOL examples, run deterministic engine process, inspect artifacts and generated Java." />
+  <style>
+    :root{--bg:#070a12;--panel:#0f1725;--panel2:#141f31;--line:rgba(255,255,255,.1);--text:#e8eef8;--muted:#93a4ba;--blue:#65d8ff;--green:#55e6a5;--gold:#ffd166;--red:#ff6b7d;--violet:#a78bfa;--shadow:0 18px 60px rgba(0,0,0,.35)}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 10% 0,rgba(101,216,255,.2),transparent 28rem),radial-gradient(circle at 90% 0,rgba(167,139,250,.18),transparent 24rem),linear-gradient(180deg,#070a12,#080c14 60%,#05070b);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}.wrap{width:min(1440px,calc(100vw - 28px));margin:auto}header{padding:34px 0 16px}.eyebrow{color:var(--green);font-size:12px;text-transform:uppercase;letter-spacing:.16em;font-weight:800}h1{font-size:clamp(34px,5vw,66px);letter-spacing:-.055em;line-height:.95;margin:8px 0 12px}.lead{max-width:1040px;color:var(--muted);font-size:18px}.grid{display:grid;grid-template-columns:360px minmax(420px,.82fr) minmax(520px,1.18fr);gap:14px;align-items:start}.card{background:linear-gradient(180deg,rgba(20,31,49,.94),rgba(13,20,32,.94));border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:16px}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}button{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);padding:9px 12px;border-radius:12px;font-weight:750;cursor:pointer}button.primary{background:linear-gradient(135deg,rgba(101,216,255,.24),rgba(85,230,165,.18));border-color:rgba(101,216,255,.35)}button:hover{border-color:rgba(101,216,255,.5)}textarea{width:100%;min-height:680px;resize:vertical;background:#070b13;color:#e9f1ff;border:1px solid var(--line);border-radius:16px;padding:14px;font-family:"SFMono-Regular",Consolas,monospace;font-size:13px;line-height:1.45}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}.metric{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:12px;min-width:0}.metric strong{display:block;font-size:18px;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric span{display:block;color:var(--muted);font-size:12px}.metric.good{border-color:rgba(85,230,165,.28);background:rgba(85,230,165,.07)}.metric.warn{border-color:rgba(255,209,102,.32);background:rgba(255,209,102,.08)}.metric.bad{border-color:rgba(255,107,125,.35);background:rgba(255,107,125,.08)}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 12px}.tabs button.active{background:rgba(101,216,255,.17);border-color:rgba(101,216,255,.45)}pre{margin:0;min-height:560px;max-height:760px;overflow:auto;background:#060912;border:1px solid var(--line);border-radius:16px;padding:14px;color:#e9f1ff;font-family:"SFMono-Regular",Consolas,monospace;font-size:12.5px;line-height:1.5}.note{color:var(--muted);font-size:13px;margin:8px 0 0}.pillrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.pill{border:1px solid var(--line);border-radius:999px;padding:6px 9px;color:#dbe7f8;background:rgba(255,255,255,.05);font-size:12px}.examples{display:grid;gap:10px;margin-top:12px}.example{text-align:left;padding:12px;border-radius:16px}.example strong{display:block;margin-bottom:3px}.example span{display:block;color:var(--muted);font-size:12px}.example.selected{background:rgba(101,216,255,.13);border-color:rgba(101,216,255,.45)}.artifact-list{margin:0;padding-left:18px;color:var(--muted);font-size:12px;max-height:560px;overflow:auto}.artifact-list li{margin:6px 0}.status{color:var(--gold);font-size:13px;min-height:20px}.split{display:grid;grid-template-columns:1fr 1fr;gap:8px}.flow{display:grid;gap:8px;margin-top:12px}.flow div{border:1px solid var(--line);background:rgba(255,255,255,.04);padding:9px;border-radius:13px;color:var(--muted);font-size:13px}.flow b{color:var(--text)}footer{color:var(--muted);font-size:12px;padding:24px 0 40px}@media(max-width:1180px){.grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}textarea{min-height:360px}pre{min-height:360px}}
+  </style>
+</head>
+<body>
+  <header class="wrap">
+    <div class="eyebrow">PRISM product workbench · backend engine MVP</div>
+    <h1>Real translation pipeline, inspectable artifacts</h1>
+    <p class="lead">Choose a COBOL fixture or paste your own code. The UI calls a Vercel serverless backend that runs the deterministic PRISM MVP engine and returns generated Java plus source, analysis, semantic, target, validation, and manifest artifacts.</p>
+    <div class="pillrow"><span class="pill">Backend API: /api/translate</span><span class="pill">No LLM code generation</span><span class="pill">Stable artifact paths</span><span class="pill">Structured gap model</span><span class="pill">Vercel-ready product skeleton</span></div>
+  </header>
+  <main class="wrap grid">
+    <aside class="card">
+      <h2>Examples</h2>
+      <p class="note">Pick a fixture to run through the engine. These are real inputs, not hardcoded outputs.</p>
+      <div id="exampleList" class="examples"></div>
+      <div class="flow">
+        <div><b>1 Parse</b> → PRISM source model</div>
+        <div><b>2 Analyze</b> → symbols, CFG, read/write</div>
+        <div><b>3 Semantics</b> → canonical Semantic IR</div>
+        <div><b>4 Generate</b> → Java Target IR + Java</div>
+        <div><b>5 Validate</b> → gaps + manifest</div>
+      </div>
+    </aside>
+    <section class="card">
+      <h2>COBOL input</h2>
+      <p class="note">Supported MVP: declarations, MOVE, arithmetic, COMPUTE, IF/ELSE, PERFORM, DISPLAY, CALL stubs. Unsupported constructs become gap artifacts.</p>
+      <div class="toolbar"><button id="runBtn" class="primary">Run backend engine</button><button id="downloadJavaBtn">Download Java</button><button id="downloadBundleBtn">Download artifact bundle</button></div>
+      <textarea id="cobolInput" spellcheck="false"></textarea>
+    </section>
+    <section class="card">
+      <h2>Engine output</h2>
+      <div id="statusLine" class="status"></div>
+      <div id="summary" class="metrics"></div>
+      <div class="tabs">
+        <button data-tab="java" class="active">Generated Java</button>
+        <button data-tab="ir">Semantic IR</button>
+        <button data-tab="source">Source + analysis</button>
+        <button data-tab="cfg">CFG</button>
+        <button data-tab="gaps">Gaps</button>
+        <button data-tab="manifest">Manifest</button>
+        <button data-tab="artifacts">Artifacts</button>
+        <button id="copyJavaBtn">Copy Java</button>
+      </div>
+      <div data-panel="java"><pre id="javaOut"></pre></div>
+      <div data-panel="ir" hidden><pre id="irOut"></pre></div>
+      <div data-panel="source" hidden><pre id="sourceOut"></pre></div>
+      <div data-panel="cfg" hidden><pre id="cfgOut"></pre></div>
+      <div data-panel="gaps" hidden><pre id="gapsOut"></pre></div>
+      <div data-panel="manifest" hidden><pre id="manifestOut"></pre></div>
+      <div data-panel="artifacts" hidden><ul id="artifactList" class="artifact-list"></ul></div>
+    </section>
+  </main>
+  <footer class="wrap">PRISM MVP product structure: shared deterministic engine in <code>src/</code>, Vercel serverless APIs in <code>api/</code>, browser workbench in <code>index.html/app.js</code>, tests in <code>tests/</code>.</footer>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
